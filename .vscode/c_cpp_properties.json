@@ -19,7 +19,7 @@
                 "${workspaceFolder}",
                 "${workspaceFolder}/build/config",
                 "${workspaceFolder}/build/bootloader/config",
-
+                "${workspaceFolder}/modules/configIniLib/include",
                 "${IDF_TOOLS}/xtensa-esp32-elf/esp32-2019r1-8.2.0/xtensa-esp32-elf/lib/gcc/xtensa-esp32-elf/8.2.0/include",
                 "${IDF_TOOLS}/xtensa-esp32-elf/esp32-2019r1-8.2.0/xtensa-esp32-elf/xtensa-esp32-elf/include",
                 "${IDF_TOOLS}/xtensa-esp32-elf/esp32-2019r1-8.2.0/xtensa-esp32-elf/xtensa-esp32-elf/include/c++/8.2.0",
@@ -72,7 +72,6 @@
                 "${IDF_PATH}/components/bt/host/nimble/port/include",
                 "${IDF_PATH}/components/bt/host/nimble/nimble/nimble/host/services/gap/include",
                 "${IDF_PATH}/components/bt/host/nimble/nimble/nimble/host/services/gatt/include"
-
             ],
             "defines": [],
             "cStandard": "c11",
