@@ -38,7 +38,8 @@
     "*.mdx": "tdx",
     "stdio.h": "c",
     "configiniread.h": "c",
-    "*.ipp": "c"
+    "*.ipp": "c",
+    "random": "c"
   },
   "C_Cpp.errorSquiggles": "Disabled"
 }
