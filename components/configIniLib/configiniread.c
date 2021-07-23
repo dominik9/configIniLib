@@ -1,7 +1,8 @@
 #include "configiniread.h"
+#include "esp_log.h"
 
-//get ini configuration
-//file.ini, config name, * char
+
+static const char * CONFIG_INI_TAG_LOG = "INI_LOG";
 
 int32_t convertCharToInt(char value){
     return value - '0';
@@ -9,13 +10,31 @@ int32_t convertCharToInt(char value){
 
 void getConfigTag(char * line_buffer, char * tag, char * val){
   //Rozdzielic tag od wartości
-  //zwrucic
+  bool tag_in_line = true;
+  uint8_t i = 0, tag_val_iter = 0;
+
+  while (line_buffer[i] - '\0'){
+    if(tag_in_line == true){
+      if(line_buffer[i] == '='){
+        tag[tag_val_iter] = '\0';
+        tag_in_line = false;
+        tag_val_iter = 0;
+      }else{
+        tag[tag_val_iter] = line_buffer[i];
+        tag_val_iter++;
+      }
+    }else{
+      val[tag_val_iter] = line_buffer[i];
+      tag_val_iter++;
+    }
+    i++;
+  }
+  val[tag_val_iter] = '\0';
 }
 
-//file = np.: text_ini
-Config_ini_error_t getConfigFromFile(char * file, char * configTag, char * value){
+Config_ini_error_t getConfigFromFile(char * configTag, char * value){
   extern const unsigned char configString[] asm(CONFIG_FILE_START);
-  printf("%s\n", configString);
+  //printf("%s\n", configString);
   int i = 0;
   char line_buffer[50] = "\0";
   char lineTag[40] = "\0";
@@ -25,24 +44,22 @@ Config_ini_error_t getConfigFromFile(char * file, char * configTag, char * value
     buff_iter++;
     if (configString[i] == '\n'){
       line_buffer[buff_iter-1] = '\0';
-      printf("Buffer line: %s\n", line_buffer);
+      //printf("Buffer line: %s\n", line_buffer);
       getConfigTag(line_buffer, lineTag, value);
+      //printf("Tag = %s, Val = %s\n", lineTag, value);
       if (!strcmp(configTag, lineTag)){ //Czy to jest ten config
-        //wyciągnąć wartość zapisać i skończyć funkcję sukcesem
+        return CONFIG_OK;
       }    
       buff_iter = 0;
     }
     i++;
   }
-  //szukanie linijki podobnej do configTag
-  //zwrot jeżeli jest jesli nie ma to error
-  strcpy(value, "2");
-  return CONFIG_OK;
+  return CONFIG_ERROR_CONFIG_TAG;
 }
 
-Config_ini_error_t getIntConfigFromFile(char * file, char * configTag, int32_t * value){
-    char value_buff[30];
-    Config_ini_error_t error = getConfigFromFile(file, configTag, value_buff);
+Config_ini_error_t getIntConfigFromFile(char * configTag, int32_t * value){
+    char value_buff[VALUE_BUFFER_SIZE];
+    Config_ini_error_t error = getConfigFromFile(configTag, value_buff);
     if(error){ 
         configIniErrorDisplay(error); 
         return error;       
@@ -59,30 +76,50 @@ Config_ini_error_t getIntConfigFromFile(char * file, char * configTag, int32_t *
     return CONFIG_OK;
 }
 
-Config_ini_error_t getBoolConfigFromFile(char * file, char * configTag, bool * value){
+Config_ini_error_t getBoolConfigFromFile(char * configTag, bool * value){
+  char value_buff[VALUE_BUFFER_SIZE];
+  Config_ini_error_t error = getConfigFromFile(configTag, value_buff);
+  if(error){ 
+    configIniErrorDisplay(error); 
+    return error;       
+  }
+  int buff_iter = 0;
+  if(value_buff[0] == '0'){
+    *value = false;
+  }else if(value_buff[0] == '1'){
+    *value = true;
+  }else{
+    if (!strcmp("true", value_buff)){
+      *value = true;
+    }else if(!strcmp("false", value_buff)){
+      *value = false;
+    }else{
+      configIniErrorDisplay(CONFIG_ERROR_BOOL_VALUE);
+      return CONFIG_ERROR_BOOL_VALUE;
+    }
+
+  }
+  
   return CONFIG_OK;
 }
 
-Config_ini_error_t getListConfigFromFile(char * file, char * configTag, int32_t * value){
+Config_ini_error_t getListConfigFromFile(char * configTag, int32_t * value){
   return CONFIG_OK;
 }
 
 void configIniErrorDisplay(Config_ini_error_t error){
-    printf("error %d", error);
+  switch(error){
+    case CONFIG_OK:
+      ESP_LOGI(CONFIG_INI_TAG_LOG, "OK");
+      break;
+    case CONFIG_ERROR_FILE_INI:
+      ESP_LOGW(CONFIG_INI_TAG_LOG, "Problem with config file.");
+      break;
+    case CONFIG_ERROR_CONFIG_TAG:
+      ESP_LOGW(CONFIG_INI_TAG_LOG, "Tag does't exist.");
+      break;
+    case CONFIG_ERROR_BOOL_VALUE:
+      ESP_LOGW(CONFIG_INI_TAG_LOG, "Bool value incorrect, check config.ini file.");
+      break;
+  }
 }
-// void getAllConfigurations(char * configString){
-//   int i = 0;
-//   char line_buffer[50];
-//   int buff_iter = 0;
-//   while (configString[i] - '\0'){
-//     if (configString[i] == '\n'){
-//       line_buffer[buff_iter] = '\0';
-//       printf("Buffer line: %s\n", line_buffer);
-//       printLineConfig(line_buffer);
-//       buff_iter = 0;
-//       i++;
-//     }
-//     line_buffer[buff_iter] = configString[i];
-//     i++;
-//   }
-// }

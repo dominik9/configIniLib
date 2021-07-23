@@ -39,7 +39,8 @@
     "stdio.h": "c",
     "configiniread.h": "c",
     "*.ipp": "c",
-    "random": "c"
+    "random": "c",
+    "string.h": "c"
   },
   "C_Cpp.errorSquiggles": "Disabled"
 }
